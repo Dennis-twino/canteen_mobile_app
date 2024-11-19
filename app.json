@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Kenswed Canteen",
+    "slug": "canteen",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/ikon.jpg",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/ikon.jpg",
+      "resizeMode": "contain",
+      "backgroundColor": "#000"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "newArchEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/ikon.jpg",
+        "backgroundColor": "#000"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a34b6cf3-5476-43d1-89a4-87de14a4d9a0"
+      }
+    }
+  }
+}
