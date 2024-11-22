@@ -5,7 +5,7 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Image source={require('../assets/banner.jpg')} style={styles.image} />
-      <Text style={styles.title}>Cooking experience like a chef</Text>
+      <Text style={styles.title}>Great Taste, Shortcut to Delicious Moments! </Text>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ItemList')}>
         <Text style={styles.buttonText}>Get Started</Text>
       </TouchableOpacity>

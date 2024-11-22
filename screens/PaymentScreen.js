@@ -1,94 +1,145 @@
-// src/screens/PaymentScreen.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import axios from 'axios';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Modal,
+} from 'react-native';
 
 const PaymentScreen = ({ route, navigation }) => {
-  const item = route.params?.item;
-  
-  if (!item) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Error: No item information found.</Text>
-      </View>
-    );
-  }
-
+  const totalAmount = route.params?.totalAmount || 0;
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [amount] = useState(item.price); // price from item data
+  const [mpesaPin, setMpesaPin] = useState('');
+  const [isMpesaModalVisible, setMpesaModalVisible] = useState(false);
+  const [isPinModalVisible, setPinModalVisible] = useState(false);
 
-  const handleMpesaPayment = async () => {
-    if (!phoneNumber) {
-      Alert.alert("Please enter a phone number.");
+  const handleCashPayment = () => {
+    Alert.alert(
+      'Payment Successful!',
+      `You have paid Ksh ${totalAmount} for your items.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Home'), // Redirect to Home
+        },
+      ]
+    );
+  };
+
+  const handleMpesaPayment = () => {
+    setMpesaModalVisible(true);
+  };
+
+  const submitPhoneNumber = () => {
+    if (!phoneNumber || !/^07\d{8}$/.test(phoneNumber)) {
+      Alert.alert('Invalid Phone Number', 'Please enter a valid Kenyan phone number (07XXXXXXXX).');
       return;
     }
-    
-    try {
-      // Replace with your M-Pesa Daraja API credentials
-      const consumerKey = '7QaGKTZhKgqpNs8lrScCXbg6p3f1ipzhM4TYWmgUkX52jrAd';
-      const consumerSecret = 'cDiAntTnpp72DfkgX8TjKLVSiAAmWFAj33gFkGATClzO7zqbrRITNRCgDl2XDBB0';
-      const shortCode = '600987';
-      const passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-      const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
-      const password = Buffer.from(shortCode + passkey + timestamp).toString('base64');
+    setMpesaModalVisible(false);
+    setPinModalVisible(true);
+  };
 
-      const tokenResponse = await axios.get('https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials', {
-        headers: {
-          Authorization: 'Basic ' + Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64')
-        }
-      });
-
-      const token = tokenResponse.data.access_token;
-
-      const paymentResponse = await axios.post(
-        'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest',
-        {
-          BusinessShortCode: shortCode,
-          Password: password,
-          Timestamp: timestamp,
-          TransactionType: 'CustomerPayBillOnline',
-          Amount: amount,
-          PartyA: phoneNumber,
-          PartyB: shortCode,
-          PhoneNumber: phoneNumber,
-          CallBackURL: 'https://example.com/callback',
-          AccountReference: item.name,
-          TransactionDesc: `Payment for ${item.name}`
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      if (paymentResponse.data.ResponseCode === '0') {
-        Alert.alert("Payment successful!", `You paid Ksh ${item.price} for ${item.name}.`);
-        navigation.goBack();
-      } else {
-        Alert.alert("Payment failed", "Please try again.");
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert("An error occurred", "Please try again.");
+  const submitMpesaPin = () => {
+    if (!mpesaPin || mpesaPin.length !== 4) {
+      Alert.alert('Invalid PIN', 'Please enter a valid 4-digit M-Pesa PIN.');
+      return;
     }
+    setPinModalVisible(false);
+    Alert.alert(
+      'Payment Successful!',
+      `You have paid Ksh ${totalAmount} to paybill number 522533, account number 7664166.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Home'), // Redirect to Home
+        },
+      ]
+    );
+  };
+
+  const handleOtherPayment = () => {
+    Alert.alert('Payment Option', 'Other payment methods are coming soon!');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>M-Pesa Payment</Text>
-      <Text style={styles.label}>Item: {item.name}</Text>
-      <Text style={styles.label}>Price: Ksh {item.price}</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number (07XXXXXXXX)"
-        keyboardType="phone-pad"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-      />
+      <Text style={styles.title}>Payment Options</Text>
+      <Text style={styles.label}>Total Amount: Ksh {totalAmount}</Text>
+
+      {/* Cash Payment */}
+      <TouchableOpacity style={styles.paymentButton} onPress={handleCashPayment}>
+        <Text style={styles.paymentButtonText}>Pay with Cash</Text>
+      </TouchableOpacity>
+
+      {/* M-Pesa Payment */}
       <TouchableOpacity style={styles.paymentButton} onPress={handleMpesaPayment}>
         <Text style={styles.paymentButtonText}>Pay with M-Pesa</Text>
       </TouchableOpacity>
+
+      {/* Other Payment */}
+      <TouchableOpacity style={styles.paymentButton} onPress={handleOtherPayment}>
+        <Text style={styles.paymentButtonText}>Other Payment Methods</Text>
+      </TouchableOpacity>
+
+      {/* M-Pesa Modal */}
+      <Modal transparent={true} visible={isMpesaModalVisible}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Enter Your Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="07XXXXXXXX"
+              keyboardType="phone-pad"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={styles.modalButton} onPress={submitPhoneNumber}>
+                <Text style={styles.modalButtonText}>Send</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setMpesaModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* M-Pesa PIN Modal */}
+      <Modal transparent={true} visible={isPinModalVisible}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              You are paying Ksh {totalAmount} to Paybill 522533, Account No. 7664166
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your M-Pesa PIN"
+              keyboardType="numeric"
+              secureTextEntry={true}
+              value={mpesaPin}
+              onChangeText={setMpesaPin}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={styles.modalButton} onPress={submitMpesaPin}>
+                <Text style={styles.modalButtonText}>Send</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setPinModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -108,18 +159,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
-    marginBottom: 10,
+    marginBottom: 20,
+    textAlign: 'center',
     color: '#333',
-  },
-  input: {
-    height: 50,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    marginBottom: 15,
-    backgroundColor: '#fff',
   },
   paymentButton: {
     backgroundColor: '#4CAF50',
@@ -133,10 +175,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  errorText: {
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    marginHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalTitle: {
     fontSize: 18,
-    color: 'red',
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
+  },
+  input: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    fontSize: 16,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    width: '100%',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#f44336',
   },
 });
 

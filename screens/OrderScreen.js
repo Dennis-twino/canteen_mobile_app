@@ -1,13 +1,12 @@
-// src/screens/OrderScreen.js
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
 const OrderScreen = ({ route, navigation }) => {
   const { item } = route.params;
-  
+
   const handleProceedToPayment = () => {
-    // Navigate to Payment screen or handle payment logic
-    navigation.navigate('Payment'); // Ensure 'Payment' screen is set up in your navigation
+    // Navigate to PaymentScreen and pass the selected item as a parameter
+    navigation.navigate('Payment', { item });
   };
 
   return (

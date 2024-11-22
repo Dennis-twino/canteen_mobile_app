@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/ikon.jpg",
         "backgroundColor": "#000"
-      }
+      },
+      "package": "com.twino.canteen"
     },
     "web": {
       "favicon": "./assets/favicon.png"
